@@ -193,6 +193,111 @@ func TestBooleanExpression(t *testing.T) {
 	}
 }
 
+func TestIfExpression(t *testing.T) {
+	input := `if (x < y) { x }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Number of statements expected=%d, got=%d",
+			1, len(program.Statements))
+	}
+
+	s, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("s is expected=%s, got=%T", "*ast.ExpressionStatement", s)
+	}
+
+	exp, ok := s.Expression.(*ast.IFExpression)
+	if !ok {
+		t.Errorf("exp is expected=%s, got=%T", "*ast.IFExpression", s.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("exp consequence statement len expected=%d, got=%d\n",
+			1, len(exp.Consequence.Statements))
+	}
+
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is expected=%s, got=%T",
+			"ast.ExpressionStatement", exp.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if exp.Alternative != nil {
+		t.Errorf("exp.Alternative.Statements expected=%s, got=%+v", "nil", "exp.Alternative")
+	}
+}
+
+func TestIfElseExpression(t *testing.T) {
+	input := `if (x < y) { x } else { y }`
+
+	l := lexer.New(input)
+	p := New(l)
+	program := p.ParseProgram()
+	checkParserErrors(t, p)
+
+	if len(program.Statements) != 1 {
+		t.Fatalf("Number of statements expected=%d, got=%d",
+			1, len(program.Statements))
+	}
+
+	s, ok := program.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("s is expected=%s, got=%T", "*ast.ExpressionStatement", s)
+	}
+
+	exp, ok := s.Expression.(*ast.IFExpression)
+	if !ok {
+		t.Errorf("exp is expected=%s, got=%T", "*ast.IFExpression", s.Expression)
+	}
+
+	if !testInfixExpression(t, exp.Condition, "x", "<", "y") {
+		return
+	}
+
+	if len(exp.Consequence.Statements) != 1 {
+		t.Errorf("exp consequence statement len expected=%d, got=%d\n",
+			1, len(exp.Consequence.Statements))
+	}
+
+	consequence, ok := exp.Consequence.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is expected=%s, got=%T",
+			"ast.ExpressionStatement", exp.Consequence.Statements[0])
+	}
+
+	if !testIdentifier(t, consequence.Expression, "x") {
+		return
+	}
+
+	if len(exp.Alternative.Statements) != 1 {
+		t.Errorf("exp alternative statement len expected=%d, got=%d\n",
+			1, len(exp.Alternative.Statements))
+	}
+
+	alternative, ok := exp.Alternative.Statements[0].(*ast.ExpressionStatement)
+	if !ok {
+		t.Fatalf("Statements[0] is expected=%s, got=%T",
+			"ast.ExpressionStatement", exp.Alternative.Statements[0])
+	}
+
+	if !testIdentifier(t, alternative.Expression, "y") {
+		return
+	}
+}
+
 func TestPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
