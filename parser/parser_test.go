@@ -298,6 +298,36 @@ func TestIfElseExpression(t *testing.T) {
 	}
 }
 
+func TestFunctionLiteral(t *testing.T) {
+	tests := []struct {
+		input          string
+		expectedParams []string
+	}{
+		{input: "fn() {};", expectedParams: []string{}},
+		{input: "fn(x) {};", expectedParams: []string{"x"}},
+		{input: "fn(x, y, z) {};", expectedParams: []string{"x", "y", "z"}},
+	}
+
+	for _, tt := range tests {
+		l := lexer.New(tt.input)
+		p := New(l)
+		program := p.ParseProgram()
+		checkParserErrors(t, p)
+
+		s := program.Statements[0].(*ast.ExpressionStatement)
+		fn := s.Expression.(*ast.FunctionLiteral)
+
+		if len(fn.Parameters) != len(tt.expectedParams) {
+			t.Errorf("Length of params expected=%d, got=%d",
+				len(tt.expectedParams), len(fn.Parameters))
+		}
+
+		for i, param := range fn.Parameters {
+			testLiteralExpression(t, param, tt.expectedParams[i])
+		}
+	}
+}
+
 func TestPrefixExpressions(t *testing.T) {
 	prefixTests := []struct {
 		input    string
